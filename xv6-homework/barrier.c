@@ -27,7 +27,36 @@ barrier_init(void)
 static void 
 barrier()
 {
-  bstate.round++;
+  // 获取互斥保护锁
+  pthread_mutex_lock(&bstate.barrier_mutex);
+
+  // 记录当前线程到来时的轮数
+  int round = bstate.round;
+
+  // 当前已抵达的线程数+1
+  bstate.nthread++;
+
+  // 检查是不是本轮次中最后到达的
+  // 是最后到达的，开始放行
+  if(bstate.nthread == nthread) {
+    bstate.round++;
+    bstate.nthread = 0;
+    
+    // 唤醒所有休眠的线程
+    pthread_cond_broadcast(&bstate.barrier_cond);
+
+  } 
+
+  // 不是最后一个，进入等待
+  else {
+    // 防范提前唤醒或者虚假苏醒
+    while(round == bstate.round) {
+        pthread_cond_wait(&bstate.barrier_cond, &bstate.barrier_mutex);
+    }
+  }
+
+  // 释放锁
+  pthread_mutex_unlock(&bstate.barrier_mutex);
 }
 
 static void *
