@@ -1,0 +1,44 @@
+# Local Codex/session files
+.codex
+.codex/
+
+# Editor and OS noise
+*~
+*.swp
+*.swo
+.DS_Store
+
+# Generic local build outputs
+*.o
+*.d
+a.out
+
+# xv6 build artifacts
+/xv6-public/_*
+/xv6-public/*.asm
+/xv6-public/*.sym
+/xv6-public/*.tex
+/xv6-public/*.dvi
+/xv6-public/*.idx
+/xv6-public/*.aux
+/xv6-public/*.log
+/xv6-public/*.ind
+/xv6-public/*.ilg
+/xv6-public/.gdbinit
+/xv6-public/bootblock
+/xv6-public/bootblockother.o
+/xv6-public/entryother
+/xv6-public/initcode
+/xv6-public/initcode.out
+/xv6-public/kernel
+/xv6-public/kernelmemfs
+/xv6-public/mkfs
+/xv6-public/vectors.S
+/xv6-public/fs.img
+/xv6-public/xv6.img
+/xv6-public/xv6memfs.img
+/xv6-public/bochsout.txt
+/xv6-public/parport.out
+
+# Homework helper binaries built directly with gcc
+/xv6-homework/a.out
