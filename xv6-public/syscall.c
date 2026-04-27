@@ -89,6 +89,7 @@ extern int sys_exec(void);
 extern int sys_exit(void);
 extern int sys_fork(void);
 extern int sys_fstat(void);
+extern int sys_date(void);
 extern int sys_getpid(void);
 extern int sys_kill(void);
 extern int sys_link(void);
@@ -126,6 +127,7 @@ static int (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_date]    sys_date,
 };
 
 #define SYSARG_INT 0
@@ -162,6 +164,7 @@ static struct syscallinfo syscallinfo[] = {
 [SYS_link]    { "link",   2, { SYSARG_STR, SYSARG_STR, 0 } },
 [SYS_mkdir]   { "mkdir",  1, { SYSARG_STR, 0, 0 } },
 [SYS_close]   { "close",  1, { SYSARG_INT, 0, 0 } },
+[SYS_date]    { "date",   1, { SYSARG_PTR, 0, 0 } },
 };
 
 static void
