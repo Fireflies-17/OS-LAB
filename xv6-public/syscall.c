@@ -85,6 +85,7 @@ argstr(int n, char **pp)
 extern int sys_chdir(void);
 extern int sys_close(void);
 extern int sys_dup(void);
+extern int sys_dup2(void);
 extern int sys_exec(void);
 extern int sys_exit(void);
 extern int sys_fork(void);
@@ -116,6 +117,7 @@ static int (*syscalls[])(void) = {
 [SYS_fstat]   sys_fstat,
 [SYS_chdir]   sys_chdir,
 [SYS_dup]     sys_dup,
+[SYS_dup2]    sys_dup2,
 [SYS_getpid]  sys_getpid,
 [SYS_sbrk]    sys_sbrk,
 [SYS_sleep]   sys_sleep,
@@ -153,6 +155,7 @@ static struct syscallinfo syscallinfo[] = {
 [SYS_fstat]   { "fstat",  2, { SYSARG_INT, SYSARG_PTR, 0 } },
 [SYS_chdir]   { "chdir",  1, { SYSARG_STR, 0, 0 } },
 [SYS_dup]     { "dup",    1, { SYSARG_INT, 0, 0 } },
+[SYS_dup2]    { "dup2",   2, { SYSARG_INT, SYSARG_INT, 0 } },
 [SYS_getpid]  { "getpid", 0, { 0, 0, 0 } },
 [SYS_sbrk]    { "sbrk",   1, { SYSARG_INT, 0, 0 } },
 [SYS_sleep]   { "sleep",  1, { SYSARG_INT, 0, 0 } },
