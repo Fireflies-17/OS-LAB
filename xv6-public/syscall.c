@@ -128,40 +128,116 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 };
 
-static char *syscallnames[] = {
-[SYS_fork]    "fork",
-[SYS_exit]    "exit",
-[SYS_wait]    "wait",
-[SYS_pipe]    "pipe",
-[SYS_read]    "read",
-[SYS_kill]    "kill",
-[SYS_exec]    "exec",
-[SYS_fstat]   "fstat",
-[SYS_chdir]   "chdir",
-[SYS_dup]     "dup",
-[SYS_getpid]  "getpid",
-[SYS_sbrk]    "sbrk",
-[SYS_sleep]   "sleep",
-[SYS_uptime]  "uptime",
-[SYS_open]    "open",
-[SYS_write]   "write",
-[SYS_mknod]   "mknod",
-[SYS_unlink]  "unlink",
-[SYS_link]    "link",
-[SYS_mkdir]   "mkdir",
-[SYS_close]   "close",
+#define SYSARG_INT 0
+#define SYSARG_PTR 1
+#define SYSARG_STR 2
+#define MAXSYSARGS 3
+#define MAXSYSARGSTR 32
+
+struct syscallinfo {
+  char *name;
+  int nargs;
+  int argtypes[MAXSYSARGS];
 };
+
+static struct syscallinfo syscallinfo[] = {
+[SYS_fork]    { "fork",   0, { 0, 0, 0 } },
+[SYS_exit]    { "exit",   0, { 0, 0, 0 } },
+[SYS_wait]    { "wait",   0, { 0, 0, 0 } },
+[SYS_pipe]    { "pipe",   1, { SYSARG_PTR, 0, 0 } },
+[SYS_read]    { "read",   3, { SYSARG_INT, SYSARG_PTR, SYSARG_INT } },
+[SYS_kill]    { "kill",   1, { SYSARG_INT, 0, 0 } },
+[SYS_exec]    { "exec",   2, { SYSARG_STR, SYSARG_PTR, 0 } },
+[SYS_fstat]   { "fstat",  2, { SYSARG_INT, SYSARG_PTR, 0 } },
+[SYS_chdir]   { "chdir",  1, { SYSARG_STR, 0, 0 } },
+[SYS_dup]     { "dup",    1, { SYSARG_INT, 0, 0 } },
+[SYS_getpid]  { "getpid", 0, { 0, 0, 0 } },
+[SYS_sbrk]    { "sbrk",   1, { SYSARG_INT, 0, 0 } },
+[SYS_sleep]   { "sleep",  1, { SYSARG_INT, 0, 0 } },
+[SYS_uptime]  { "uptime", 0, { 0, 0, 0 } },
+[SYS_open]    { "open",   2, { SYSARG_STR, SYSARG_INT, 0 } },
+[SYS_write]   { "write",  3, { SYSARG_INT, SYSARG_PTR, SYSARG_INT } },
+[SYS_mknod]   { "mknod",  3, { SYSARG_STR, SYSARG_INT, SYSARG_INT } },
+[SYS_unlink]  { "unlink", 1, { SYSARG_STR, 0, 0 } },
+[SYS_link]    { "link",   2, { SYSARG_STR, SYSARG_STR, 0 } },
+[SYS_mkdir]   { "mkdir",  1, { SYSARG_STR, 0, 0 } },
+[SYS_close]   { "close",  1, { SYSARG_INT, 0, 0 } },
+};
+
+static void
+copyargstr(char *dst, char *src)
+{
+  int i;
+
+  for(i = 0; i < MAXSYSARGSTR-1 && src[i]; i++)
+    dst[i] = src[i];
+  dst[i] = 0;
+}
+
+static void
+collectsysargs(int num, int args[], char argstrs[][MAXSYSARGSTR])
+{
+  int i;
+  char *s;
+
+  for(i = 0; i < syscallinfo[num].nargs; i++){
+    argstrs[i][0] = 0;
+    if(argint(i, &args[i]) < 0){
+      args[i] = 0;
+      if(syscallinfo[num].argtypes[i] == SYSARG_STR)
+        copyargstr(argstrs[i], "<bad>");
+      continue;
+    }
+    if(syscallinfo[num].argtypes[i] == SYSARG_STR){
+      if(fetchstr(args[i], &s) < 0)
+        copyargstr(argstrs[i], "<bad>");
+      else
+        copyargstr(argstrs[i], s);
+    }
+  }
+}
+
+static void
+printsyscall(int num, int args[], char argstrs[][MAXSYSARGSTR], int ret)
+{
+  int i;
+
+  cprintf("%s", syscallinfo[num].name);
+  if(syscallinfo[num].nargs > 0){
+    cprintf("(");
+    for(i = 0; i < syscallinfo[num].nargs; i++){
+      if(i > 0)
+        cprintf(", ");
+      switch(syscallinfo[num].argtypes[i]){
+      case SYSARG_STR:
+        cprintf("\"%s\"", argstrs[i]);
+        break;
+      case SYSARG_PTR:
+        cprintf("0x%x", args[i]);
+        break;
+      default:
+        cprintf("%d", args[i]);
+        break;
+      }
+    }
+    cprintf(")");
+  }
+  cprintf(" -> %d\n", ret);
+}
 
 void
 syscall(void)
 {
   int num;
+  int args[MAXSYSARGS];
+  char argstrs[MAXSYSARGS][MAXSYSARGSTR];
   struct proc *curproc = myproc();
 
   num = curproc->tf->eax;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
+    collectsysargs(num, args, argstrs);
     curproc->tf->eax = syscalls[num]();
-    cprintf("%s -> %d\n", syscallnames[num], curproc->tf->eax);
+    printsyscall(num, args, argstrs, curproc->tf->eax);
   } else {
     cprintf("%d %s: unknown sys call %d\n",
             curproc->pid, curproc->name, num);
