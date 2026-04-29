@@ -59,11 +59,18 @@ trap(struct trapframe *tf)
     }
     lapiceoi();
     p = myproc();
-    if(p != 0 && (tf->cs & 3) == DPL_USER && p->alarmticks > 0){
+    if(p != 0 && (tf->cs & 3) == DPL_USER &&
+       p->alarmticks > 0 && p->alarmactive == 0){
       p->alarmelapsed++;
       if(p->alarmelapsed >= p->alarmticks){
         p->alarmelapsed = 0;
-        eip = tf->eip;
+        p->alarmactive = 1;
+        p->alarmeip = tf->eip;
+        p->alarmesp = tf->esp;
+        p->alarmeax = tf->eax;
+        p->alarmecx = tf->ecx;
+        p->alarmedx = tf->edx;
+        eip = p->alarmret;
         tf->esp -= 4;
         if(copyout(p->pgdir, tf->esp, &eip, sizeof(eip)) < 0)
           p->killed = 1;

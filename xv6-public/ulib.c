@@ -4,6 +4,15 @@
 #include "user.h"
 #include "x86.h"
 
+extern int alarmsys(int, void (*)(), void (*)());
+extern void __alarmret(void);
+
+int
+alarm(int ticks, void (*handler)())
+{
+  return alarmsys(ticks, handler, __alarmret);
+}
+
 char*
 strcpy(char *s, const char *t)
 {

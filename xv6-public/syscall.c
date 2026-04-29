@@ -87,15 +87,40 @@ sys_alarm(void)
 {
   int ticks;
   void (*handler)();
+  void (*ret)();
 
   if(argint(0, &ticks) < 0)
     return -1;
   if(argptr(1, (char**)&handler, 1) < 0)
     return -1;
+  if(argptr(2, (char**)&ret, 1) < 0)
+    return -1;
   myproc()->alarmticks = ticks;
   myproc()->alarmelapsed = 0;
+  myproc()->alarmactive = 0;
   myproc()->alarmhandler = handler;
+  myproc()->alarmret = (uint)ret;
   return 0;
+}
+
+int
+sys_alarmret(void)
+{
+  struct proc *p;
+  uint eax;
+
+  p = myproc();
+  if(p->alarmactive == 0)
+    return -1;
+
+  eax = p->alarmeax;
+  p->tf->eip = p->alarmeip;
+  p->tf->esp = p->alarmesp;
+  p->tf->eax = p->alarmeax;
+  p->tf->ecx = p->alarmecx;
+  p->tf->edx = p->alarmedx;
+  p->alarmactive = 0;
+  return eax;
 }
 
 extern int sys_chdir(void);
@@ -122,6 +147,7 @@ extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
 extern int sys_alarm(void);
+extern int sys_alarmret(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -148,6 +174,7 @@ static int (*syscalls[])(void) = {
 [SYS_close]   sys_close,
 [SYS_date]    sys_date,
 [SYS_alarm]   sys_alarm,
+[SYS_alarmret] sys_alarmret,
 };
 
 #define SYSARG_INT 0
@@ -187,6 +214,7 @@ static struct syscallinfo syscallinfo[] = {
 [SYS_close]   { "close",  1, { SYSARG_INT, 0, 0 } },
 [SYS_date]    { "date",   1, { SYSARG_PTR, 0, 0 } },
 [SYS_alarm]   { "alarm",  2, { SYSARG_INT, SYSARG_PTR, 0 } },
+[SYS_alarmret] { "alarmret", 0, { 0, 0, 0 } },
 };
 
 static void

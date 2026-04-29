@@ -48,7 +48,14 @@ struct proc {
   int killed;                  // If non-zero, have been killed
   int alarmticks;              // CPU ticks between alarm handler calls
   int alarmelapsed;            // CPU ticks since last alarm handler call
+  int alarmactive;             // Is an alarm handler already running?
   void (*alarmhandler)();      // User alarm handler
+  uint alarmret;               // User trampoline that returns from handler
+  uint alarmeip;               // Saved user state interrupted by alarm
+  uint alarmesp;
+  uint alarmeax;
+  uint alarmecx;
+  uint alarmedx;
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)

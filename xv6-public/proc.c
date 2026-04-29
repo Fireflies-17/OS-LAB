@@ -90,7 +90,14 @@ found:
   p->pid = nextpid++;
   p->alarmticks = 0;
   p->alarmelapsed = 0;
+  p->alarmactive = 0;
   p->alarmhandler = 0;
+  p->alarmret = 0;
+  p->alarmeip = 0;
+  p->alarmesp = 0;
+  p->alarmeax = 0;
+  p->alarmecx = 0;
+  p->alarmedx = 0;
 
   release(&ptable.lock);
 

@@ -31,4 +31,16 @@ SYSCALL(sleep)
 SYSCALL(uptime)
 SYSCALL(date)
 SYSCALL(dup2)
-SYSCALL(alarm)
+SYSCALL(alarmret)
+
+.globl alarmsys
+alarmsys:
+  movl $SYS_alarm, %eax
+  int $T_SYSCALL
+  ret
+
+.globl __alarmret
+__alarmret:
+  movl $SYS_alarmret, %eax
+  int $T_SYSCALL
+  ret
