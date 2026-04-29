@@ -82,6 +82,22 @@ argstr(int n, char **pp)
   return fetchstr(addr, pp);
 }
 
+int
+sys_alarm(void)
+{
+  int ticks;
+  void (*handler)();
+
+  if(argint(0, &ticks) < 0)
+    return -1;
+  if(argptr(1, (char**)&handler, 1) < 0)
+    return -1;
+  myproc()->alarmticks = ticks;
+  myproc()->alarmelapsed = 0;
+  myproc()->alarmhandler = handler;
+  return 0;
+}
+
 extern int sys_chdir(void);
 extern int sys_close(void);
 extern int sys_dup(void);
@@ -105,6 +121,7 @@ extern int sys_unlink(void);
 extern int sys_wait(void);
 extern int sys_write(void);
 extern int sys_uptime(void);
+extern int sys_alarm(void);
 
 static int (*syscalls[])(void) = {
 [SYS_fork]    sys_fork,
@@ -130,6 +147,7 @@ static int (*syscalls[])(void) = {
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
 [SYS_date]    sys_date,
+[SYS_alarm]   sys_alarm,
 };
 
 #define SYSARG_INT 0
@@ -168,6 +186,7 @@ static struct syscallinfo syscallinfo[] = {
 [SYS_mkdir]   { "mkdir",  1, { SYSARG_STR, 0, 0 } },
 [SYS_close]   { "close",  1, { SYSARG_INT, 0, 0 } },
 [SYS_date]    { "date",   1, { SYSARG_PTR, 0, 0 } },
+[SYS_alarm]   { "alarm",  2, { SYSARG_INT, SYSARG_PTR, 0 } },
 };
 
 static void

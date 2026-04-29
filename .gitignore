@@ -42,3 +42,7 @@ a.out
 
 # Homework helper binaries built directly with gcc
 /xv6-homework/a.out
+
+*.tex
+*.zip
+*.pdf

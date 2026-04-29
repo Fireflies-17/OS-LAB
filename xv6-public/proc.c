@@ -88,6 +88,9 @@ allocproc(void)
 found:
   p->state = EMBRYO;
   p->pid = nextpid++;
+  p->alarmticks = 0;
+  p->alarmelapsed = 0;
+  p->alarmhandler = 0;
 
   release(&ptable.lock);
 

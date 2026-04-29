@@ -36,6 +36,9 @@ idtinit(void)
 void
 trap(struct trapframe *tf)
 {
+  struct proc *p;
+  uint eip;
+
   if(tf->trapno == T_SYSCALL){
     if(myproc()->killed)
       exit();
@@ -55,6 +58,19 @@ trap(struct trapframe *tf)
       release(&tickslock);
     }
     lapiceoi();
+    p = myproc();
+    if(p != 0 && (tf->cs & 3) == DPL_USER && p->alarmticks > 0){
+      p->alarmelapsed++;
+      if(p->alarmelapsed >= p->alarmticks){
+        p->alarmelapsed = 0;
+        eip = tf->eip;
+        tf->esp -= 4;
+        if(copyout(p->pgdir, tf->esp, &eip, sizeof(eip)) < 0)
+          p->killed = 1;
+        else
+          tf->eip = (uint)p->alarmhandler;
+      }
+    }
     break;
   case T_IRQ0 + IRQ_IDE:
     ideintr();
